@@ -1,0 +1,35 @@
+# Python
+*.pyc
+pycache/
+*.pyo
+*.pyd
+*.py[cod]
+*.so
+
+# Django
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# Migrations (если хочешь коммитить только код миграций, можно оставить)
+# finance/migrations/*.pyc
+# finance/migrations/pycache/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

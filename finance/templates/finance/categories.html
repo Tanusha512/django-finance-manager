@@ -1,0 +1,19 @@
+{% extends 'finance/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Категории" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Категории доходов и расходов" %}</h1>
+
+<ul class="list-group mb-4">
+    {% for category in categories %}
+        <li class="list-group-item">
+            {{ category.name }} — 
+            {% if category.type == 'income' %}{% trans "Доход" %}{% else %}{% trans "Расход" %}{% endif %}
+        </li>
+    {% empty %}
+        <li class="list-group-item">{% trans "Категории не созданы" %}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'finance/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Кошельки" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Ваши кошельки" %}</h1>
+
+<ul class="list-group mb-4">
+    {% for wallet in wallets %}
+        <li class="list-group-item">
+            {{ wallet.name }} — {{ wallet.balance }} ₽
+        </li>
+    {% empty %}
+        <li class="list-group-item">{% trans "Кошельки не созданы" %}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'finance/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Цели" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Ваши цели" %}</h1>
+
+<ul class="list-group mb-4">
+    {% for goal in goals %}
+        <li class="list-group-item">
+            {{ goal.title }} — {{ goal.target_amount }} ₽, {% trans "до" %} {{ goal.deadline|date:"d.m.Y" }}
+            {% if goal.url %}<a href="{{ goal.url }}" target="_blank">{% trans "Подробнее" %}</a>{% endif %}
+        </li>
+    {% empty %}
+        <li class="list-group-item">{% trans "Цели отсутствуют" %}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

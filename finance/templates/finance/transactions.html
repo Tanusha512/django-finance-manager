@@ -1,0 +1,19 @@
+{% extends 'finance/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Транзакции" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Список транзакций" %}</h1>
+
+<ul class="list-group mb-4">
+    {% for tx in transactions %}
+        <li class="list-group-item">
+            {{ tx.date|date:"d.m.Y H:i" }} — {{ tx.category.name }}: {{ tx.amount }} ₽
+            {% if tx.comment %}({{ tx.comment }}){% endif %}
+        </li>
+    {% empty %}
+        <li class="list-group-item">{% trans "Транзакции отсутствуют" %}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

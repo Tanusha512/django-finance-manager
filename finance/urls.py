@@ -1,13 +1,16 @@
-from django.urls import path 
-from . import views 
- 
-urlpatterns = [ 
-    path('', views.dashboard_view, name='dashboard'), 
-    path('wallets/', views.wallets_view, name='wallets'), 
-    path('transactions/', views.transactions_view, name='transactions'), 
-    path('goals/', views.goals_view, name='goals'), 
-    path('categories/', views.categories_view, name='categories'), 
-    path('login/', views.login_view, name='login'), 
-    path('register/', views.register_view, name='register'), 
-    path('logout/', views.logout_view, name='logout'), 
+from django.urls import path
+from . import views
+
+app_name = 'finance'
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+    path('wallets/', views.wallets, name='wallets'),
+    path('transactions/', views.transactions, name='transactions'),
+    path('goals/', views.goals, name='goals'),
+    path('categories/', views.categories, name='categories'),
+    path('profile/', views.profile_view, name='profile'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_view, name='register'),
 ]

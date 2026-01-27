@@ -1,74 +1,56 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Wallet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
-    name = models.CharField("Название кошелька", max_length=100)
-    balance = models.DecimalField("Баланс", max_digits=12, decimal_places=2)
-
-    class Meta:
-        verbose_name = "Кошелек"
-        verbose_name_plural = "Кошельки"
+    name = models.CharField(max_length=50, verbose_name="Название кошелька")
+    balance = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Баланс")
+    currency = models.CharField(max_length=10, default="RUB", verbose_name="Валюта")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     def str(self):
-        return self.name
-
+        return f"{self.name} ({self.balance} {self.currency})"
 
 class Category(models.Model):
-    TYPE_CHOICES = (
-        ('income', 'Доход'),
-        ('expense', 'Расход'),
-    )
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
-    name = models.CharField("Название категории", max_length=100)
-    type = models.CharField("Тип категории", max_length=10, choices=TYPE_CHOICES)
-
-    class Meta:
-        verbose_name = "Категория"
-        verbose_name_plural = "Категории"
+    name = models.CharField(max_length=50, verbose_name="Название категории")
+    description = models.TextField(blank=True, verbose_name="Описание")
 
     def str(self):
         return self.name
-
-
-class Transaction(models.Model):
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, verbose_name="Кошелек")
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="Категория")
-    amount = models.DecimalField("Сумма", max_digits=12, decimal_places=2)
-    comment = models.TextField("Комментарий", blank=True)
-    date = models.DateTimeField("Дата и время", auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Транзакция"
-        verbose_name_plural = "Транзакции"
-
-    def str(self):
-        return f"{self.amount} ₽ — {self.category}"
-
 
 class Goal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
-    title = models.CharField("Название цели", max_length=200)
-    target_amount = models.DecimalField("Целевая сумма", max_digits=12, decimal_places=2)
-    deadline = models.DateField("Срок достижения")
-    url = models.URLField("Ссылка (опционально)", blank=True)
-
-    class Meta:
-        verbose_name = "Цель"
-        verbose_name_plural = "Цели"
+    title = models.CharField(max_length=100, verbose_name="Название цели")
+    target_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Целевая сумма")
+    current_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Накоплено")
+    deadline = models.DateField(null=True, blank=True, verbose_name="Срок")
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Категория")
 
     def str(self):
         return self.title
 
+class Transaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('income', 'Доход'),
+        ('expense', 'Расход')
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, verbose_name="Кошелек")
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Категория")
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES, verbose_name="Тип")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма")
+    date = models.DateTimeField(default=timezone.now, verbose_name="Дата")
+    description = models.TextField(blank=True, verbose_name="Описание")
+
+    def str(self):
+        return f"{self.transaction_type} {self.amount} в {self.wallet.name}"
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Пользователь")
-    avatar = models.ImageField("Аватар", upload_to='avatars/', blank=True)
-
-    class Meta:
-        verbose_name = "Профиль"
-        verbose_name_plural = "Профили"
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name="Аватар")
+    bio = models.TextField(blank=True, verbose_name="О себе")
 
     def str(self):
         return self.user.username

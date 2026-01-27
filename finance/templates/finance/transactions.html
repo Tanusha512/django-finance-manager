@@ -1,10 +1,10 @@
 {% extends 'finance/base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Транзакции" %}{% endblock %}
+{% block title %}Транзакции{% endblock %}
 
 {% block content %}
-<h1>{% trans "Список транзакций" %}</h1>
+<h1>Список транзакций</h1>
 
 <ul class="list-group mb-4">
     {% for tx in transactions %}
@@ -13,7 +13,14 @@
             {% if tx.comment %}({{ tx.comment }}){% endif %}
         </li>
     {% empty %}
-        <li class="list-group-item">{% trans "Транзакции отсутствуют" %}</li>
+        <li class="list-group-item">Транзакции отсутствуют</li>
     {% endfor %}
 </ul>
+
+<h2>Добавить транзакцию</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Добавить</button>
+</form>
 {% endblock %}

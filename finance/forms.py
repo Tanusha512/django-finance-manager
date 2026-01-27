@@ -30,4 +30,4 @@ class TransactionForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'form-select'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-        }
+        } 

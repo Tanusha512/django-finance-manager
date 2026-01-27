@@ -1,19 +1,47 @@
-{% extends 'finance/base.html' %}
-{% load i18n %}
-
-{% block title %}{% trans "Цели" %}{% endblock %}
-
-{% block content %}
-<h1>{% trans "Ваши цели" %}</h1>
-
-<ul class="list-group mb-4">
-    {% for goal in goals %}
-        <li class="list-group-item">
-            {{ goal.title }} — {{ goal.target_amount }} ₽, {% trans "до" %} {{ goal.deadline|date:"d.m.Y" }}
-            {% if goal.url %}<a href="{{ goal.url }}" target="_blank">{% trans "Подробнее" %}</a>{% endif %}
-        </li>
-    {% empty %}
-        <li class="list-group-item">{% trans "Цели отсутствуют" %}</li>
-    {% endfor %}
-</ul>
+{% extends 'finance/base.html' %} 
+ 
+{% block title %}Цели{% endblock %} 
+ 
+{% block content %} 
+<h1>Финансовые цели</h1> 
+ 
+<ul class="list-group mb-4"> 
+    {% for goal in goals %} 
+        <li class="list-group-item"> 
+            {{ goal.title }} — {{ goal.target_amount }} ₽ до {{ goal.deadline|date:"d.m.Y" }} 
+            {% if goal.url %} 
+                <a href="{{ goal.url }}" target="_blank">Подробнее</a> 
+            {% endif %} 
+        </li> 
+    {% empty %} 
+        <li class="list-group-item">Цели отсутствуют</li> 
+    {% endfor %} 
+</ul> 
+ 
+<h2>Добавить цель</h2> 
+<form method="post"> 
+    {% csrf_token %} 
+ 
+    <div class="mb-2"> 
+        <label>Название цели</label> 
+        <input type="text" name="title" class="form-control" required> 
+    </div> 
+ 
+    <div class="mb-2"> 
+        <label>Сумма</label> 
+        <input type="number" name="target_amount" class="form-control" required> 
+    </div> 
+ 
+    <div class="mb-2"> 
+        <label>Дедлайн</label> 
+        <input type="date" name="deadline" class="form-control" required> 
+    </div> 
+ 
+    <div class="mb-2"> 
+        <label>Ссылка</label> 
+        <input type="url" name="url" class="form-control"> 
+    </div> 
+ 
+    <button class="btn btn-success">Добавить цель</button> 
+</form> 
 {% endblock %}

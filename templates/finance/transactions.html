@@ -1,0 +1,20 @@
+{% extends 'finance/base.html' %}
+{% block title %}Транзакции{% endblock %}
+
+{% block content %}
+<h1>Транзакции</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Добавить транзакцию</button>
+</form>
+
+<ul>
+    {% for transaction in transactions %}
+        <li>{{ transaction.date|date:"d.m.Y H:i" }} - {{ transaction.amount }} ({{ transaction.transaction_type }})</li>
+    {% empty %}
+        <li>Транзакций нет</li>
+    {% endfor %}
+</ul>
+{% endblock %}

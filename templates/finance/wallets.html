@@ -1,0 +1,20 @@
+{% extends 'finance/base.html' %}
+{% block title %}Кошельки{% endblock %}
+
+{% block content %}
+<h1>Кошельки</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Добавить кошелек</button>
+</form>
+
+<ul>
+    {% for wallet in wallets %}
+        <li>{{ wallet.name }} - {{ wallet.balance }} {{ wallet.currency }}</li>
+    {% empty %}
+        <li>Кошельков нет</li>
+    {% endfor %}
+</ul>
+{% endblock %}

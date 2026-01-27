@@ -1,0 +1,33 @@
+{% extends 'finance/base.html' %}
+{% block title %}Дашборд{% endblock %}
+
+{% block content %}
+<h1>Дашборд</h1>
+
+<h3>Кошельки</h3>
+<ul>
+    {% for wallet in wallets %}
+        <li>{{ wallet.name }}: {{ wallet.balance }} {{ wallet.currency }}</li>
+    {% empty %}
+        <li>Кошельков нет</li>
+    {% endfor %}
+</ul>
+
+<h3>Последние транзакции</h3>
+<ul>
+    {% for transaction in transactions %}
+        <li>{{ transaction.date|date:"d.m.Y H:i" }} - {{ transaction.amount }} ({{ transaction.transaction_type }})</li>
+    {% empty %}
+        <li>Транзакций нет</li>
+    {% endfor %}
+</ul>
+
+<h3>Цели</h3>
+<ul>
+    {% for goal in goals %}
+        <li>{{ goal.title }}: {{ goal.current_amount }}/{{ goal.target_amount }}</li>
+    {% empty %}
+        <li>Целей нет</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'finance/base.html' %}
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<h1>Профиль</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+
+{% if user.profile.avatar %}
+    <img src="{{ user.profile.avatar.url }}" alt="Аватар" width="150">
+{% endif %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'finance/base.html' %}
+{% block title %}Категории{% endblock %}
+
+{% block content %}
+<h1>Категории</h1>
+
+<ul>
+    {% for category in categories %}
+        <li>{{ category.name }} - {{ category.description }}</li>
+    {% empty %}
+        <li>Категорий нет</li>
+    {% endfor %}
+</ul>
+{% endblock %}

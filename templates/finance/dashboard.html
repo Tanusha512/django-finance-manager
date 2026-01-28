@@ -1,33 +1,633 @@
 {% extends 'finance/base.html' %}
-{% block title %}Дашборд{% endblock %}
+
+{% block title %}Главная - Финансовый менеджер{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card-income {
+        border-left-color: #28a745;
+    }
+    
+    .stat-card-expense {
+        border-left-color: #dc3545;
+    }
+    
+    .stat-card-balance {
+        border-left-color: #007bff;
+    }
+    
+    .stat-card-goals {
+        border-left-color: #6f42c1;
+    }
+    
+    .section-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .section-card:hover {
+        box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .section-header-secondary {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .wallet-item {
+        border-left: 3px solid #007bff;
+        padding: 12px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        transition: all 0.2s;
+    }
+    
+    .wallet-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .transaction-item {
+        padding: 10px 15px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        border: 1px solid #e3e6f0;
+        transition: all 0.2s;
+    }
+    
+    .transaction-item:hover {
+        background-color: #f8f9fa;
+        border-color: #b7d4ff;
+    }
+    
+    .quick-action-btn {
+        height: 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: #495057;
+    }
+    
+    .quick-action-btn:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+        transform: scale(1.05);
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    .category-tag {
+        display: inline-block;
+        padding: 5px 12px;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        border-radius: 20px;
+        margin: 3px;
+        font-size: 0.85rem;
+    }
+    
+    .net-income-positive {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+    
+    .net-income-negative {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1>Дашборд</h1>
+<!-- Заголовок страницы -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 mb-1">
+                    <i class="fas fa-tachometer-alt me-2"></i> Фин-учёт
+                </h1>
+                <p class="text-muted mb-0">Обзор ваших финансов! Добро пожаловать, {{ user.username }}!</p>
+                <small class="text-muted">
+                    <i class="far fa-calendar me-1"></i> Сегодня {% now "d E Y" %}
+                    <span class="mx-2">•</span>
+                    <i class="far fa-clock me-1"></i> <span id="current-time"></span>
+                </small>
+            </div>
+            <div>
+                <a href="{% url 'finance:transaction_add' %}" class="btn btn-success btn-lg me-2">
+                    <i class="fas fa-plus-circle me-2"></i> Новая транзакция
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<h3>Кошельки</h3>
-<ul>
-    {% for wallet in wallets %}
-        <li>{{ wallet.name }}: {{ wallet.balance }} {{ wallet.currency }}</li>
-    {% empty %}
-        <li>Кошельков нет</li>
-    {% endfor %}
-</ul>
+<!-- Основная статистика -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="h4 mb-3">
+            <i class="fas fa-chart-line text-primary me-2"></i> Финансовая статистика
+        </h3>
+    </div>
+    
+    <!-- Общий баланс -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card stat-card-balance h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-uppercase text-muted mb-2">
+                            <i class="fas fa-money-bill-wave me-1"></i> Общий баланс
+                        </h6>
+                        <h3 class="mb-0 fw-bold">
+                            {{ total_balance|floatformat:2 }} ₽
+                        </h3>
+                        <p class="text-muted mb-0 mt-2 small">
+                            <i class="fas fa-wallet me-1"></i>
+                            {{ wallets|length }} кошельков
+                        </p>
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-coins fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<h3>Последние транзакции</h3>
-<ul>
-    {% for transaction in transactions %}
-        <li>{{ transaction.date|date:"d.m.Y H:i" }} - {{ transaction.amount }} ({{ transaction.transaction_type }})</li>
-    {% empty %}
-        <li>Транзакций нет</li>
-    {% endfor %}
-</ul>
+    <!-- Доходы -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card stat-card-income h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-uppercase text-muted mb-2">
+                            <i class="fas fa-arrow-up text-success me-1"></i> Доходы
+                        </h6>
+                        <h3 class="mb-0 fw-bold text-success">
+                            {{ monthly_income|floatformat:2 }} ₽
+                        </h3>
+                        <p class="text-muted mb-0 mt-2 small">
+                            <i class="far fa-calendar me-1"></i>
+                            За текущий месяц
+                        </p>
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-arrow-up fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<h3>Цели</h3>
-<ul>
-    {% for goal in goals %}
-        <li>{{ goal.title }}: {{ goal.current_amount }}/{{ goal.target_amount }}</li>
-    {% empty %}
-        <li>Целей нет</li>
-    {% endfor %}
-</ul>
+    <!-- Расходы -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card stat-card-expense h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-uppercase text-muted mb-2">
+                            <i class="fas fa-arrow-down text-danger me-1"></i> Расходы
+                        </h6>
+                        <h3 class="mb-0 fw-bold text-danger">
+                            {{ monthly_expense|floatformat:2 }} ₽
+                        </h3>
+                        <p class="text-muted mb-0 mt-2 small">
+                            <i class="far fa-calendar me-1"></i>
+                            За текущий месяц
+                        </p>
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-arrow-down fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Чистый доход -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card h-100 {% with net_income=monthly_income|add:monthly_expense %}{% if net_income >= 0 %}net-income-positive{% else %}net-income-negative{% endif %}{% endwith %}">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-uppercase mb-2">
+                            <i class="fas fa-chart-line me-1"></i> Чистый доход
+                        </h6>
+                        {% with net_income=monthly_income|add:monthly_expense %}
+                        <h3 class="mb-0 fw-bold">
+                            {% if net_income >= 0 %}+{% endif %}{{ net_income|floatformat:2 }} ₽
+                        </h3>
+                        <p class="mb-0 mt-2 small">
+                            <i class="fas {% if net_income >= 0 %}fa-smile{% else %}fa-frown{% endif %} me-1"></i>
+                            {% if net_income >= 0 %}Хороший результат{% else %}Нужно экономить{% endif %}
+                        </p>
+                        {% endwith %}
+                    </div>
+                    <div class="ms-3">
+                        <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center opacity-75" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-balance-scale fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Основной контент -->
+<div class="row">
+    <!-- Кошельки -->
+    <div class="col-lg-6 mb-4">
+        <div class="card section-card h-100">
+            <div class="card-header section-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-wallet me-2"></i> Мои кошельки
+                    </h5>
+                    <a href="{% url 'finance:wallets' %}" class="btn btn-light btn-sm">
+                        Все кошельки <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if wallets %}
+                    {% for wallet in wallets %}
+                    <div class="wallet-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-1">
+                                    <i class="fas fa-credit-card me-2 text-primary"></i>{{ wallet.name }}
+                                </h6>
+                                <p class="mb-0 text-muted small">
+                                    <i class="far fa-calendar me-1"></i> Создан {{ wallet.created_at|date:"d.m.Y" }}
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <h5 class="fw-bold mb-0">{{ wallet.balance }} {{ wallet.currency }}</h5>
+                                <div class="mt-2">
+                                    <a href="{% url 'finance:transaction_add' %}?wallet={{ wallet.id }}" 
+                                       class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-plus me-1"></i> Транзакция
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3 pt-3 border-top">
+                        <a href="{% url 'finance:wallets' %}" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-list me-1"></i> Все кошельки
+                        </a>
+                        <a href="{% url 'finance:wallet_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Новый кошелек
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-wallet fa-4x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">Кошельков пока нет</h5>
+                        <p class="text-muted mb-4">Создайте свой первый кошелек для управления финансами</p>
+                        <a href="{% url 'finance:wallet_add' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i> Создать кошелек
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Последние транзакции -->
+    <div class="col-lg-6 mb-4">
+        <div class="card section-card h-100">
+            <div class="card-header section-header-secondary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exchange-alt me-2"></i> Последние операции
+                    </h5>
+                    <a href="{% url 'finance:transactions' %}" class="btn btn-light btn-sm">
+                        Все транзакции <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                    {% for transaction in transactions %}
+                    <div class="transaction-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="badge {% if transaction.transaction_type == 'income' %}bg-success{% else %}bg-danger{% endif %} me-2">
+                                        {{ transaction.get_transaction_type_display }}
+                                    </span>
+                                    <h6 class="mb-0">
+                                        {% if transaction.category %}
+                                            {{ transaction.category.name }}
+                                        {% else %}
+                                            Без категории
+                                        {% endif %}
+                                    </h6>
+                                </div>
+                                <p class="mb-1 small text-muted">
+                                    <i class="far fa-clock me-1"></i>{{ transaction.date|date:"d.m.Y H:i" }}
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-wallet me-1"></i>{{ transaction.wallet.name }}
+                                </p>
+                                {% if transaction.description %}
+                                <p class="mb-0 small">{{ transaction.description|truncatechars:60 }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="text-end ms-3">
+                                <h5 class="fw-bold mb-0 {% if transaction.transaction_type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                    {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}
+                                    {{ transaction.amount }} ₽
+                                </h5>
+                                <small class="text-muted">{{ transaction.wallet.currency }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3 pt-3 border-top">
+                        <a href="{% url 'finance:transactions' %}" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-list me-1"></i> Все транзакции
+                        </a>
+                        <a href="{% url 'finance:transaction_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Новая транзакция
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-exchange-alt fa-4x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">Транзакций пока нет</h5>
+                        <p class="text-muted mb-4">Начните отслеживать свои доходы и расходы</p>
+                        <a href="{% url 'finance:transaction_add' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i> Добавить транзакцию
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Нижний ряд -->
+<div class="row">
+    <!-- Категории -->
+    <div class="col-lg-8 mb-4">
+        <div class="card section-card h-100">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">
+                    <i class="fas fa-tags text-primary me-2"></i> Категории расходов
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if categories %}
+                    <div class="row">
+                        {% for category in categories %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card border h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-tag text-primary me-2"></i>{{ category.name }}
+                                    </h6>
+                                    {% if category.description %}
+                                    <p class="card-text small text-muted">{{ category.description|truncatechars:80 }}</p>
+                                    {% endif %}
+                                    <div class="mt-3">
+                                        <a href="{% url 'finance:category_edit' category.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'finance:categories' %}" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-tags me-1"></i> Все категории
+                        </a>
+                        <a href="{% url 'finance:category_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Новая категория
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Категорий пока нет</h5>
+                        <p class="text-muted">Создайте категории для сортировки расходов</p>
+                        <a href="{% url 'finance:category_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i> Создать категорию
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="col-lg-4 mb-4">
+        <div class="card section-card h-100">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt text-warning me-2"></i> Быстрые действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a href="{% url 'finance:transaction_add' %}" class="quick-action-btn">
+                            <i class="fas fa-plus-circle fa-2x mb-2 text-success"></i>
+                            <span>Транзакция</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'finance:wallet_add' %}" class="quick-action-btn">
+                            <i class="fas fa-wallet fa-2x mb-2 text-primary"></i>
+                            <span>Кошелек</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'finance:goal_add' %}" class="quick-action-btn">
+                            <i class="fas fa-bullseye fa-2x mb-2 text-warning"></i>
+                            <span>Цель</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'finance:category_add' %}" class="quick-action-btn">
+                            <i class="fas fa-tag fa-2x mb-2 text-info"></i>
+                            <span>Категория</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-link text-secondary me-2"></i> Навигация
+                    </h6>
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'finance:profile' %}" class="list-group-item list-group-item-action border-0 py-2">
+                            <i class="fas fa-user-circle text-primary me-2"></i>
+                            Мой профиль
+                        </a>
+                        <a href="{% url 'finance:goals' %}" class="list-group-item list-group-item-action border-0 py-2">
+                            <i class="fas fa-bullseye text-success me-2"></i>
+                            Мои цели
+                        </a>
+                        <a href="{% url 'admin:index' %}" class="list-group-item list-group-item-action border-0 py-2">
+                            <i class="fas fa-cog text-secondary me-2"></i>
+                            Админ-панель
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">Статистика</small>
+                            <div class="fw-bold">{{ transactions|length }} транзакций</div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">Кошельки</small>
+                            <div class="fw-bold">{{ wallets|length }} шт.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Приветствие -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light border-0">
+            <div class="card-body text-center">
+                <h4 class="card-title">
+                    <i class="fas fa-heart text-danger me-2"></i> Управляйте финансами с умом!
+                </h4>
+                <p class="card-text text-muted mb-0">
+                    Финансовый менеджер поможет вам контролировать доходы и расходы, 
+                    достигать целей и улучшать финансовое благополучие.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновление времени
+    function updateTime() {
+        const now = new Date();
+        const timeElement = document.getElementById('current-time');
+        if (timeElement) {
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            timeElement.textContent = `${hours}:${minutes}`;
+        }
+    }
+    
+    // Анимация карточек при загрузке
+    const animateCards = () => {
+        const cards = document.querySelectorAll('.stat-card, .section-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 150);
+        });
+    };
+    
+    // Запуск анимаций
+    updateTime();
+    animateCards();
+    
+    // Обновление времени каждую минуту
+    setInterval(updateTime, 60000);
+    
+    // Добавляем hover-эффекты для быстрых действий
+    const quickActions = document.querySelectorAll('.quick-action-btn');
+    quickActions.forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.style.transform = 'scale(1.2)';
+                icon.style.transition = 'transform 0.3s ease';
+            }
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            const icon = this.querySelector('i');
+            if (icon) {
+                icon.style.transform = 'scale(1)';
+            }
+        });
+    });
+    
+    // Плавный скролл для якорей
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Редактирование кошелька{% else %}Новый кошелек{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    {% if form.instance.pk %}
+                        <i class="fas fa-edit"></i> Редактирование кошелька
+                    {% else %}
+                        <i class="fas fa-plus-circle"></i> Создание нового кошелька
+                    {% endif %}
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            {{ form.name.label }} *
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Например: Основной, Накопительный, Карта Тинькофф</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.balance.id_for_label }}" class="form-label">
+                            {{ form.balance.label }}
+                        </label>
+                        {{ form.balance }}
+                        {% if form.balance.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.balance.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Начальная сумма в кошельке</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.currency.id_for_label }}" class="form-label">
+                            {{ form.currency.label }}
+                        </label>
+                        {{ form.currency }}
+                        {% if form.currency.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.currency.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'finance:wallets' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Назад к кошелькам
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            {% if form.instance.pk %}
+                                <i class="fas fa-save"></i> Сохранить изменения
+                            {% else %}
+                                <i class="fas fa-check"></i> Создать кошелек
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автофокус на поле названия
+    document.getElementById('{{ form.name.id_for_label }}').focus();
+    
+    // Форматирование суммы
+    const balanceField = document.getElementById('{{ form.balance.id_for_label }}');
+    if (balanceField) {
+        balanceField.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^\d.]/g, '');
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            if (parts.length === 2 && parts[1].length > 2) {
+                value = parts[0] + '.' + parts[1].substring(0, 2);
+            }
+            e.target.value = value;
+        });
+    }
+});
+</script>
+{% endblock %}

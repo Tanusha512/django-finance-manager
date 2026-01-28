@@ -1,20 +1,122 @@
 {% extends 'finance/base.html' %}
-{% block title %}Кошельки{% endblock %}
+
+{% block title %}Мои кошельки - Финансовый менеджер{% endblock %}
 
 {% block content %}
-<h1>Кошельки</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-wallet me-2"></i> Мои кошельки
+    </h1>
+    <a href="{% url 'finance:wallet_add' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Добавить кошелек
+    </a>
+</div>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Добавить кошелек</button>
-</form>
-
-<ul>
+{% if wallets %}
+<div class="row">
     {% for wallet in wallets %}
-        <li>{{ wallet.name }} - {{ wallet.balance }} {{ wallet.currency }}</li>
-    {% empty %}
-        <li>Кошельков нет</li>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ wallet.name }}</h5>
+                <span class="badge bg-primary">{{ wallet.currency }}</span>
+            </div>
+            <div class="card-body">
+                <h2 class="card-text">{{ wallet.balance }} {{ wallet.currency }}</h2>
+                <p class="text-muted mb-0">
+                    <small>Создан: {{ wallet.created_at|date:"d.m.Y" }}</small>
+                </p>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'finance:wallet_edit' wallet.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i> Изменить
+                    </a>
+                    <a href="{% url 'finance:wallet_delete' wallet.id %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i> Удалить
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endfor %}
-</ul>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Статистика кошельков</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 text-center">
+                <div class="border rounded p-3">
+                    <h3 class="text-primary">{{ wallet_count }}</h3>
+                    <p class="text-muted mb-0">Всего кошельков</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="border rounded p-3">
+                    <h3 class="text-success">{{ total_balance_rub|floatformat:2 }} ₽</h3>
+                    <p class="text-muted mb-0">Баланс в рублях</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="border rounded p-3">
+                    <h3 class="text-info">{{ total_balance_all|floatformat:2 }}</h3>
+                    <p class="text-muted mb-0">Общий баланс</p>
+                    <small>(все валюты)</small>
+                </div>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="border rounded p-3">
+                    <h3 class="text-warning">{{ currency_count }}</h3>
+                    <p class="text-muted mb-0">Количество валют</p>
+                    {% if currencies %}
+                    <small>
+                        {% for currency in currencies %}
+                            {{ currency }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <h4 class="alert-heading">Кошельков пока нет!</h4>
+    <p>Создайте свой первый кошелек для управления финансами.</p>
+    <a href="{% url 'finance:wallet_add' %}" class="btn btn-success">Создать первый кошелек</a>
+</div>
+{% endif %}
+
+<!-- Блок с быстрыми действиями -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Быстрые действия</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-2">
+                <a href="{% url 'finance:transaction_add' %}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-plus-circle me-2"></i> Новая транзакция
+                </a>
+            </div>
+            <div class="col-md-4 mb-2">
+                <a href="{% url 'finance:transactions' %}" class="btn btn-outline-info w-100">
+                    <i class="fas fa-exchange-alt me-2"></i> Все транзакции
+                </a>
+            </div>
+            <div class="col-md-4 mb-2">
+                <a href="{% url 'finance:dashboard' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-chart-line me-2"></i> На дашборд
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

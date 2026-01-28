@@ -1,14 +1,596 @@
 {% extends 'finance/base.html' %}
-{% block title %}Категории{% endblock %}
+
+{% block title %}Категории - Финансовый менеджер{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .category-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .category-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 15px;
+        background: rgba(255,255,255,0.2);
+    }
+    
+    .category-actions {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .category-card:hover .category-actions {
+        opacity: 1;
+    }
+    
+    .category-color {
+        width: 100%;
+        height: 5px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+    }
+    
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+        border: 2px dashed #b8c2cc;
+    }
+    
+    .empty-state-icon {
+        font-size: 80px;
+        color: #a0aec0;
+        margin-bottom: 20px;
+    }
+    
+    .color-badge {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 10px;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        border-left: 4px solid #667eea;
+    }
+    
+    .category-form-card {
+        border: 2px dashed #c3cfe2;
+        background: #f8fafc;
+        border-radius: 15px;
+        transition: all 0.3s;
+    }
+    
+    .category-form-card:hover {
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+    }
+    
+    .category-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 15px;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        border-radius: 25px;
+        margin: 5px;
+        font-weight: 500;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .transaction-count {
+        background: #667eea;
+        color: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1>Категории</h1>
+<!-- Заголовок страницы -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2 mb-1">
+                    <i class="fas fa-tags text-primary me-2"></i> Категории расходов
+                </h1>
+                <p class="text-muted mb-0">
+                    Организуйте и управляйте вашими финансовыми категориями
+                    {% if categories %}
+                        <span class="badge bg-primary ms-2">{{ categories|length }} категорий</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'finance:category_add' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus-circle me-2"></i> Новая категория
+                </a>
+                <a href="{% url 'finance:dashboard' %}" class="btn btn-outline-secondary btn-lg ms-2">
+                    <i class="fas fa-arrow-left me-2"></i> На главную
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<ul>
+{% if categories %}
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 50px; height: 50px;">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="mb-0">{{ categories|length }}</h3>
+                    <p class="text-muted mb-0">Всего категорий</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 50px; height: 50px;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="mb-0">
+                        {% with desc_count=0 %}
+                            {% for category in categories %}
+                                {% if category.description %}
+                                    {{ desc_count|add:1 }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    </h3>
+                    <p class="text-muted mb-0">С описанием</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 50px; height: 50px;">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="mb-0">
+                        {% comment %} Здесь можно добавить количество транзакций по категориям {% endcomment %}
+                        {{ categories|length }}
+                    </h3>
+                    <p class="text-muted mb-0">Активных</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="category-form-card p-4 text-center h-100">
+            <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+            <h5 class="mb-2">Добавить категорию</h5>
+            <p class="text-muted small mb-3">Создайте новую категорию для ваших расходов</p>
+            <a href="{% url 'finance:category_add' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Создать
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Список категорий -->
+<div class="row">
     {% for category in categories %}
-        <li>{{ category.name }} - {{ category.description }}</li>
-    {% empty %}
-        <li>Категорий нет</li>
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="category-card h-100">
+            <!-- Цветовая полоса -->
+            <div class="category-color" 
+                 style="background: linear-gradient(135deg, 
+                    {% cycle '#667eea' '#764ba2' '#f093fb' '#f5576c' '#4facfe' '#00f2fe' '#a8edea' '#fed6e3' as colors %})">
+            </div>
+            
+            <!-- Действия -->
+            <div class="category-actions">
+                <div class="btn-group">
+                    <a href="{% url 'finance:category_edit' category.id %}" 
+                       class="btn btn-sm btn-light" 
+                       title="Редактировать">
+                        <i class="fas fa-edit text-primary"></i>
+                    </a>
+                    <a href="{% url 'finance:category_delete' category.id %}" 
+                       class="btn btn-sm btn-light" 
+                       title="Удалить">
+                        <i class="fas fa-trash text-danger"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Контент карточки -->
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="category-icon text-white me-3"
+                         style="background: linear-gradient(135deg, 
+                                {% cycle '#667eea' '#764ba2' '#f093fb' '#f5576c' '#4facfe' '#00f2fe' '#a8edea' '#fed6e3' %})">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="card-title mb-1">{{ category.name }}</h4>
+                        <div class="d-flex align-items-center">
+                            <small class="text-muted">
+                                <i class="far fa-user me-1"></i>{{ category.user.username }}
+                            </small>
+                            <span class="badge bg-light text-dark ms-3">
+                                <i class="far fa-clock me-1"></i>
+                                Создана: {{ category.created_at|date:"d.m.Y" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Описание -->
+                {% if category.description %}
+                <div class="mb-3">
+                    <p class="card-text text-muted">
+                        <i class="fas fa-align-left me-2"></i>
+                        {{ category.description|truncatechars:120 }}
+                    </p>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                    <p class="card-text text-muted font-italic">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Описание отсутствует
+                    </p>
+                </div>
+                {% endif %}
+                
+                <!-- Статистика категории -->
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <div>
+                        <span class="badge bg-primary">
+                            <i class="fas fa-exchange-alt me-1"></i>
+                            {% comment %} Транзакций: 0 {% endcomment %}
+                            Транзакции
+                        </span>
+                    </div>
+                    <div class="text-end">
+                        <a href="{% url 'finance:transaction_add' %}?category={{ category.id }}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i> Транзакция
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endfor %}
-</ul>
+</div>
+
+<!-- Форма добавления внизу -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="category-form-card p-5 text-center">
+            <div class="row align-items-center">
+                <div class="col-md-8 text-start">
+                    <h4 class="mb-2">Нужна еще одна категория?</h4>
+                    <p class="text-muted mb-0">
+                        Создавайте категории для лучшей организации ваших финансов. 
+                        Например: "Продукты", "Транспорт", "Развлечения" и т.д.
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'finance:category_add' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i> Добавить категорию
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Примеры категорий -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card border-0 bg-light">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-lightbulb text-warning me-2"></i> Идеи для категорий
+                </h5>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3 bg-white rounded">
+                            <h6 class="mb-2">
+                                <span class="color-badge" style="background: #667eea;"></span>
+                                Основные расходы
+                            </h6>
+                            <small class="text-muted">
+                                Продукты, коммунальные услуги, транспорт
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3 bg-white rounded">
+                            <h6 class="mb-2">
+                                <span class="color-badge" style="background: #f093fb;"></span>
+                                Развлечения
+                            </h6>
+                            <small class="text-muted">
+                                Кино, рестораны, хобби, путешествия
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3 bg-white rounded">
+                            <h6 class="mb-2">
+                                <span class="color-badge" style="background: #4facfe;"></span>
+                                Здоровье
+                            </h6>
+                            <small class="text-muted">
+                                Медицина, спорт, косметика
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3 bg-white rounded">
+                            <h6 class="mb-2">
+                                <span class="color-badge" style="background: #a8edea;"></span>
+                                Образование
+                            </h6>
+                            <small class="text-muted">
+                                Курсы, книги, обучение
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Состояние "пусто" -->
+<div class="row">
+    <div class="col-12">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <h3 class="mb-3">Категорий пока нет</h3>
+            <p class="text-muted mb-4" style="max-width: 600px; margin: 0 auto;">
+                Категории помогают организовать ваши расходы и доходы. 
+                Создавайте категории для разных типов транзакций, чтобы лучше понимать, 
+                куда уходят ваши деньги и откуда приходят доходы.
+            </p>
+            
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-8">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-lightbulb text-warning me-2"></i>
+                                Почему нужны категории?
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Позволяют анализировать расходы по группам
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Помогают установить бюджет для каждой категории
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Упрощают поиск и фильтрацию транзакций
+                                </li>
+                                <li>
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Дают наглядную статистику по типам расходов
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'finance:category_add' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-plus-circle me-2"></i> Создать первую категорию
+                </a>
+                <a href="{% url 'finance:dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i> Вернуться на главную
+                </a>
+            </div>
+            
+            <!-- Быстрые примеры -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <h5 class="mb-3">Популярные категории:</h5>
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <span class="category-tag">
+                            <i class="fas fa-shopping-cart me-2"></i> Продукты
+                        </span>
+                        <span class="category-tag">
+                            <i class="fas fa-car me-2"></i> Транспорт
+                        </span>
+                        <span class="category-tag">
+                            <i class="fas fa-home me-2"></i> Коммунальные услуги
+                        </span>
+                        <span class="category-tag">
+                            <i class="fas fa-utensils me-2"></i> Рестораны
+                        </span>
+                        <span class="category-tag">
+                            <i class="fas fa-film me-2"></i> Развлечения
+                        </span>
+                        <span class="category-tag">
+                            <i class="fas fa-heartbeat me-2"></i> Здоровье
+                        </span>
+                        <span class="category-tag">
+                            <i class="fas fa-graduation-cap me-2"></i> Образование
+                        </span>
+                        <span class="category-tag">
+                            <i class="fas fa-tshirt me-2"></i> Одежда
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Инструкция -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-9">
+                        <h4 class="mb-2">
+                            <i class="fas fa-question-circle me-2"></i> Как использовать категории?
+                        </h4>
+                        <p class="mb-0">
+                            1. Создайте категории для разных типов расходов и доходов<br>
+                            2. При добавлении транзакции выбирайте соответствующую категорию<br>
+                            3. Анализируйте статистику по категориям на дашборде<br>
+                            4. Корректируйте бюджет на основе анализа
+                        </p>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <a href="{% url 'finance:transaction_add' %}" class="btn btn-light btn-lg">
+                            <i class="fas fa-plus me-2"></i> Добавить транзакцию
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Анимация карточек при загрузке
+    const cards = document.querySelectorAll('.category-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px) scale(0.95)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0) scale(1)';
+        }, index * 100);
+    });
+    
+    // Анимация статистических карточек
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateX(0)';
+        }, index * 150 + 300);
+    });
+    
+    // Подсветка при наведении на теги категорий
+    const categoryTags = document.querySelectorAll('.category-tag');
+    categoryTags.forEach(tag => {
+        tag.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        tag.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+    
+    // Эффект параллакса для заголовка
+    window.addEventListener('scroll', function() {
+        const scrolled = window.pageYOffset;
+        const title = document.querySelector('h1');
+        if (title) {
+            title.style.transform = `translateY(${scrolled * 0.05}px)`;
+        }
+    });
+    
+    // Показать/скрыть описание по клику
+    const categoryDescriptions = document.querySelectorAll('.card-text');
+    categoryDescriptions.forEach(desc => {
+        desc.addEventListener('click', function() {
+            if (this.classList.contains('truncated')) {
+                this.classList.remove('truncated');
+                this.style.maxHeight = 'none';
+            } else {
+                this.classList.add('truncated');
+                this.style.maxHeight = '60px';
+            }
+        });
+        
+        // Добавляем курсор указателя
+        desc.style.cursor = 'pointer';
+    });
+});
+</script>
 {% endblock %}

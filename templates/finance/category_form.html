@@ -1,0 +1,325 @@
+{% extends 'finance/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Редактирование категории{% else %}Новая категория{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 25px;
+    }
+    
+    .color-picker {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .color-option {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.3s;
+    }
+    
+    .color-option:hover {
+        transform: scale(1.1);
+    }
+    
+    .color-option.selected {
+        border-color: white;
+        box-shadow: 0 0 0 2px #667eea;
+    }
+    
+    .preview-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    
+    .example-categories {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .example-category {
+        padding: 8px 15px;
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #e0e6ff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .example-category:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="form-card">
+            <!-- Заголовок формы -->
+            <div class="form-header">
+                <div class="text-center">
+                    <i class="fas fa-tag fa-3x mb-3"></i>
+                    <h2 class="mb-2">
+                        {% if form.instance.pk %}
+                            <i class="fas fa-edit me-2"></i> Редактирование категории
+                        {% else %}
+                            <i class="fas fa-plus-circle me-2"></i> Новая категория
+                        {% endif %}
+                    </h2>
+                    <p class="mb-0">
+                        {% if form.instance.pk %}
+                            Измените информацию о категории
+                        {% else %}
+                            Создайте новую категорию для организации расходов
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Тело формы -->
+            <div class="card-body p-5">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <!-- Название категории -->
+                        <div class="col-md-8 mb-4">
+                            <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-heading me-2 text-primary"></i>
+                                {{ form.name.label }} *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Например: Продукты, Транспорт, Развлечения
+                            </div>
+                            
+                            <!-- Примеры названий -->
+                            <div class="mt-3">
+                                <small class="text-muted">Популярные варианты:</small>
+                                <div class="example-categories">
+                                    <div class="example-category" onclick="document.getElementById('{{ form.name.id_for_label }}').value='Продукты'">
+                                        Продукты
+                                    </div>
+                                    <div class="example-category" onclick="document.getElementById('{{ form.name.id_for_label }}').value='Транспорт'">
+                                        Транспорт
+                                    </div>
+                                    <div class="example-category" onclick="document.getElementById('{{ form.name.id_for_label }}').value='Развлечения'">
+                                        Развлечения
+                                    </div>
+                                    <div class="example-category" onclick="document.getElementById('{{ form.name.id_for_label }}').value='Здоровье'">
+                                        Здоровье
+                                    </div>
+                                    <div class="example-category" onclick="document.getElementById('{{ form.name.id_for_label }}').value='Образование'">
+                                        Образование
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Цвет (дополнительное поле) -->
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-palette me-2 text-primary"></i>
+                                Цвет категории
+                            </label>
+                            <div class="color-picker">
+                                <div class="color-option" style="background: #667eea;" data-color="#667eea"></div>
+                                <div class="color-option" style="background: #764ba2;" data-color="#764ba2"></div>
+                                <div class="color-option" style="background: #f093fb;" data-color="#f093fb"></div>
+                                <div class="color-option" style="background: #f5576c;" data-color="#f5576c"></div>
+                                <div class="color-option" style="background: #4facfe;" data-color="#4facfe"></div>
+                            </div>
+                            <input type="hidden" name="color" id="id_color" value="#667eea">
+                            <div class="form-text">
+                                Выберите цвет для визуального выделения
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Описание -->
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-align-left me-2 text-primary"></i>
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.description.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Опишите назначение категории (необязательно)
+                        </div>
+                    </div>
+                    
+                    <!-- Предпросмотр -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-eye me-2 text-primary"></i>
+                            Предпросмотр
+                        </label>
+                        <div class="preview-card p-4">
+                            <div class="d-flex align-items-center">
+                                <div class="category-icon text-white me-3" id="preview-icon" 
+                                     style="background: #667eea;">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                <div>
+                                    <h5 id="preview-name" class="mb-1">Название категории</h5>
+                                    <p id="preview-description" class="text-muted mb-0 small">
+                                        Описание категории появится здесь
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки -->
+                    <div class="d-flex justify-content-between mt-5">
+                        <a href="{% url 'finance:categories' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            {% if form.instance.pk %}
+                                <i class="fas fa-save me-2"></i> Сохранить изменения
+                            {% else %}
+                                <i class="fas fa-check me-2"></i> Создать категорию
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Совет -->
+        <div class="card border-0 bg-light mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-lightbulb text-warning me-2"></i> Совет
+                </h5>
+                <p class="card-text">
+                    Создавайте достаточно категорий для детального учета, но не слишком много, 
+                    чтобы не усложнять анализ. Оптимально — 10-15 основных категорий.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновление предпросмотра в реальном времени
+    const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+    const descriptionInput = document.getElementById('{{ form.description.id_for_label }}');
+    const colorOptions = document.querySelectorAll('.color-option');
+    const previewIcon = document.getElementById('preview-icon');
+    const previewName = document.getElementById('preview-name');
+    const previewDescription = document.getElementById('preview-description');
+    const colorInput = document.getElementById('id_color');
+    
+    // Обновление имени
+    nameInput.addEventListener('input', function() {
+        previewName.textContent = this.value || 'Название категории';
+    });
+    
+    // Обновление описания
+    descriptionInput.addEventListener('input', function() {
+        previewDescription.textContent = this.value || 'Описание категории появится здесь';
+    });
+    
+    // Выбор цвета
+    colorOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Убираем выделение у всех
+            colorOptions.forEach(opt => opt.classList.remove('selected'));
+            // Выделяем текущий
+            this.classList.add('selected');
+            // Обновляем цвет в предпросмотре
+            const color = this.getAttribute('data-color');
+            previewIcon.style.background = color;
+            colorInput.value = color;
+        });
+    });
+    
+    // Выбираем первый цвет по умолчанию
+    colorOptions[0].classList.add('selected');
+    
+    // Анимация формы
+    const formCard = document.querySelector('.form-card');
+    formCard.style.opacity = '0';
+    formCard.style.transform = 'translateY(30px)';
+    
+    setTimeout(() => {
+        formCard.style.transition = 'all 0.8s ease';
+        formCard.style.opacity = '1';
+        formCard.style.transform = 'translateY(0)';
+    }, 300);
+    
+    // Автофокус на поле имени
+    nameInput.focus();
+    
+    // Подсчет символов в описании
+    if (descriptionInput) {
+        const charCount = document.createElement('div');
+        charCount.className = 'form-text text-end mt-1';
+        charCount.id = 'char-count';
+        descriptionInput.parentNode.appendChild(charCount);
+        
+        function updateCharCount() {
+            const length = descriptionInput.value.length;
+            charCount.textContent = `${length} символов`;
+            if (length > 200) {
+                charCount.classList.add('text-danger');
+            } else {
+                charCount.classList.remove('text-danger');
+            }
+        }
+        
+        descriptionInput.addEventListener('input', updateCharCount);
+        updateCharCount();
+    }
+});
+</script>
+{% endblock %}

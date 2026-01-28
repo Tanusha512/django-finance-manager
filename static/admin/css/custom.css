@@ -1,0 +1,25 @@
+/* Стили для админ-панели */
+.badge {
+    font-size: 0.85em;
+    padding: 0.35em 0.65em;
+}
+
+/* Стили для прогресс-баров */
+.progress-bar-custom {
+    transition: width 0.3s ease;
+}
+
+/* Улучшенные таблицы */
+#result_list th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Кастомные цвета для типов транзакций */
+.income-badge {
+    background-color: #28a745 !important;
+}
+
+.expense-badge {
+    background-color: #dc3545 !important;
+}
